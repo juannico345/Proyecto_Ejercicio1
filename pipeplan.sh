@@ -8,3 +8,32 @@ TAP_URL="https://tapvizier.cds.unistra.fr/TAPVizieR/tap/sync?request=doQuery&lan
 echo "Descargando datos....."
 wget -O gaia_allwise.csv "$TAP_URL$URL_ADQL"
 echo "Datos descargados gaia_allwise.csv"
+echo "Realizando grafica a partir de los datos obtenidos"
+
+cat <<'EOF'> mapa_densidad.py
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+df = pd.read_csv('gaia_allwise.csv')
+
+df['indice_oi'] = df['Gmag'] - df['W2mag']
+
+# Mapa de densidad
+sc = plt.scatter(df['Gmag'], df['indice_oi'], c=df['indice_oi'], cmap='inferno')
+plt.colorbar(sc, label='Índice O-I')
+plt.title('Indice de Color O-I vs Magnitud Aparente')
+plt.grid(alpha=0.3)
+plt.savefig('mapa_densidad.png')
+plt.show()
+
+print('Imagen de densidad generada')
+EOF
+
+python3 mapa_densidad.py
+
+echo "gaia_allwise.csv" >.gitignore
+git add pipeplan.sh mapa_densidad.py mapa_densidad.png .gitignore
+
+git commit -m 'Pipeline actualizado'
+
+echo "Resta hacer el analisis fisico"
